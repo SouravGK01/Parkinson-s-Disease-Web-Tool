@@ -1,0 +1,47 @@
+import pandas as pd
+import numpy as np
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import MinMaxScaler
+from xgboost import XGBClassifier
+from sklearn.metrics import accuracy_score
+import pickle
+
+# 1. Load the dataset from the UCI repository
+# The dataset contains various voice measurements from 31 people, 23 with Parkinson's disease.
+url = "https://archive.ics.uci.edu/ml/machine-learning-databases/parkinsons/parkinsons.data"
+df = pd.read_csv(url)
+
+# 2. Separate features (X) and the target label (y)
+# 'status' is the target variable: 1 for Parkinson's, 0 for healthy.
+X = df.drop(['name', 'status'], axis=1)
+y = df['status']
+
+# 3. Split the data into training and testing sets (80% train, 20% test)
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+# 4. Scale the features to a range between -1 and 1
+# This is crucial for many ML models to perform well.
+scaler = MinMaxScaler((-1, 1))
+X_train_scaled = scaler.fit_transform(X_train)
+X_test_scaled = scaler.transform(X_test)
+
+# 5. Initialize and train the XGBoost Classifier model
+# XGBoost is a powerful and popular algorithm for classification tasks.
+model = XGBClassifier(use_label_encoder=False, eval_metric='logloss')
+model.fit(X_train_scaled, y_train)
+
+# 6. Evaluate the model's performance on the test set
+y_pred = model.predict(X_test_scaled)
+accuracy = accuracy_score(y_test, y_pred)
+print(f"Model Accuracy: {accuracy * 100:.2f}%")
+
+# 7. Save the trained model and the scaler to disk
+# These files will be loaded by the Streamlit app for making predictions.
+with open('parkinson_model.pkl', 'wb') as model_file:
+    pickle.dump(model, model_file)
+
+with open('scaler.pkl', 'wb') as scaler_file:
+    pickle.dump(scaler, scaler_file)
+
+print("Model and scaler have been saved successfully.")
+
