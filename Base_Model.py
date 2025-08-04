@@ -27,7 +27,7 @@ X_test_scaled = scaler.transform(X_test)
 
 # 5. Initialize and train the XGBoost Classifier model
 # XGBoost is a powerful and popular algorithm for classification tasks.
-model = XGBClassifier(use_label_encoder=False, eval_metric='logloss')
+model = XGBClassifier(eval_metric='logloss')
 model.fit(X_train_scaled, y_train)
 
 # 6. Evaluate the model's performance on the test set
