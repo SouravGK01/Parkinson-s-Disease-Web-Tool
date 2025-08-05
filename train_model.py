@@ -8,46 +8,46 @@ Original file is located at
 """
 
 import pandas as pd
-import numpy as np
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import MinMaxScaler
 from xgboost import XGBClassifier
 from sklearn.metrics import accuracy_score
 import pickle
 
+print("Starting model training...")
+
 # 1. Load the dataset
 url = "https://archive.ics.uci.edu/ml/machine-learning-databases/parkinsons/parkinsons.data"
 df = pd.read_csv(url)
 
-# 2. Separate features and target
+# 2. Prepare the data
 X = df.drop(['name', 'status'], axis=1)
 y = df['status']
-
-# 3. Split data
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 
-# 4. Scale features
+# 3. Scale the features
 scaler = MinMaxScaler((-1, 1))
 X_train_scaled = scaler.fit_transform(X_train)
 X_test_scaled = scaler.transform(X_test)
 
-# 5. Train the model
-model = XGBClassifier(eval_metric='logloss') # Removed the deprecated parameter
+# 4. Train the XGBoost model
+model = XGBClassifier(eval_metric='logloss')
 model.fit(X_train_scaled, y_train)
 
-# 6. Evaluate performance
+# 5. Evaluate the model
 y_pred = model.predict(X_test_scaled)
 accuracy = accuracy_score(y_test, y_pred)
 print(f"Model Accuracy: {accuracy * 100:.2f}%")
 
-# 7. Save the model and scaler using the recommended methods
-# ---- START OF CHANGES ----
-model.save_model('parkinson_model.json')  # Save the XGBoost model in JSON format
+# 6. Save the model and the scaler
+# We save the model as 'parkinson_model.json'
+model.save_model('parkinson_model.json')
 
-with open('scaler.pkl', 'wb') as scaler_file: # The scaler is fine with pickle
-    pickle.dump(scaler, scaler_file)
-# ---- END OF CHANGES ----
+# We save the scaler as 'scaler.pkl'
+with open('scaler.pkl', 'wb') as f:
+    pickle.dump(scaler, f)
 
-print("Model has been saved as parkinson_model.json.")
-print("Scaler has been saved as scaler.pkl.")
+print("\nTraining complete!")
+print("Model saved as: parkinson_model.json")
+print("Scaler saved as: scaler.pkl")
 
