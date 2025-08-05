@@ -3,4 +3,5 @@ scikit-learn
 xgboost
 streamlit
 numpy
-praat-parselmouth
+librosa
+
