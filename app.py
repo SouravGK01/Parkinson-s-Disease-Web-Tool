@@ -1,36 +1,34 @@
 import streamlit as st
-import pickle
+import pandas as pd
 import numpy as np
-import pandas as pd # Make sure pandas is imported
-from xgboost import XGBClassifier # Import XGBClassifier to load the model
+import pickle
+from xgboost import XGBClassifier
 
-# ---- START OF CHANGES ----
-# Load the trained model from JSON and the scaler from pickle
+# --- Load the Model and Scaler ---
 try:
-    model = XGBClassifier() # Initialize a new model
-    model.load_model('parkinson_model.json') # Load the trained model data into it
-    
-    with open('scaler.pkl', 'rb') as scaler_file:
-        scaler = pickle.load(scaler_file)
-except (FileNotFoundError, IOError) as e:
-    st.error(f"Error loading files: {e}. Please run `train_model.py` first.")
+    # Initialize a new XGBoost model
+    model = XGBClassifier()
+    # Load the data from the JSON file
+    model.load_model('parkinson_model.json')
+
+    # Load the scaler from the pickle file
+    with open('scaler.pkl', 'rb') as f:
+        scaler = pickle.load(f)
+
+except FileNotFoundError:
+    st.error("Model files not found. Please run `train_model.py` first to create them.")
     st.stop()
-# ---- END OF CHANGES ----
 
-# --- Streamlit Web App Interface (The rest of the code remains the same) ---
+
+# --- Streamlit App Interface ---
 st.set_page_config(page_title="Parkinson's Disease Detection", layout="wide")
-
 st.title("Speech-Based Parkinson's Disease Detection Tool 🧠")
-st.write("""
-Enter the vocal measurements of a patient to predict if they have Parkinson's disease.
-This tool uses a machine learning model trained on the UCI Parkinson's dataset.
-""")
+st.write("Enter the patient's vocal measurements to predict Parkinson's disease.")
 
 st.sidebar.header("Patient Vocal Features")
-st.sidebar.write("Use the sliders to input feature values.")
 
 def user_input_features():
-    """Create sliders in the sidebar for user input."""
+    # This function creates the sliders for user input
     features = {
         'MDVP:Fo(Hz)': st.sidebar.slider('MDVP:Fo(Hz)', 88.0, 261.0, 150.0),
         'MDVP:Fhi(Hz)': st.sidebar.slider('MDVP:Fhi(Hz)', 102.0, 593.0, 200.0),
@@ -69,8 +67,8 @@ if st.sidebar.button("Predict"):
     prediction_proba = model.predict_proba(input_scaled)
     st.header("Prediction Result")
     if prediction[0] == 1:
-        st.error("The model predicts that this person has Parkinson's Disease.", icon="⚠️")
+        st.error("The model predicts this person has Parkinson's Disease.", icon="⚠️")
         st.write(f"Confidence: {prediction_proba[0][1]*100:.2f}%")
     else:
-        st.success("The model predicts that this person is Healthy.", icon="✅")
+        st.success("The model predicts this person is Healthy.", icon="✅")
         st.write(f"Confidence: {prediction_proba[0][0]*100:.2f}%")
